@@ -1,0 +1,1 @@
+[30-Oct-2025 08:13:50 UTC] PHP Fatal error:  Cannot use Illuminate\Support\Facades\Route as Route because the name is already in use in /home/aswajasi/public_html/routes/web.php on line 22

@@ -1,0 +1,4 @@
+Setting Up Authentication (Admin Login): Menggunakan Laravel Breeze atau Jetstream (atau secara manual) untuk login admin.
+Konfigurasi File Storage: Memastikan file upload (dokumen pendaftaran, galeri, gambar artikel) bisa disimpan dengan benar.
+Membuat Controller untuk Pendaftaran: Menangani logic penyimpanan data dari formulir pendaftaran di frontend.
+Membuat Controller dan Routes untuk CRUD Admin: Untuk Galeri, Artikel, dan Mengelola Pendaftar.
