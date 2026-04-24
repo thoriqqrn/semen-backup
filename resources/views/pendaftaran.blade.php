@@ -35,6 +35,9 @@
             display: none;
             text-align: center;
             max-width: 100%;
+            width: 100%;
+            height: 100%;
+            position: relative;
         }
 
         .dropzone-preview-container.active {
@@ -47,13 +50,40 @@
 
         /* Preview image dibuat lebih kecil */
         .dropzone-preview-image {
-            width: 80px;
-            height: 80px;
+            width: 100%;
+            max-width: 220px;
+            height: 90px;
             object-fit: cover;
             border-radius: 8px;
             margin: 0 auto 8px;
             display: block;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .dropzone-preview-frame {
+            width: 100%;
+            max-width: 220px;
+            height: 90px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            margin: 0 auto 8px;
+            background-color: #fff;
+            display: none;
+        }
+
+        .dropzone-preview-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 8px;
+            display: none;
+            color: #dc3545;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+        }
+
+        .dropzone-preview-icon.active {
+            display: flex;
         }
 
         .dropzone-filename {
@@ -77,6 +107,16 @@
 
         .dropzone:hover .dropzone-change-text {
             color: #1e7e34;
+        }
+
+        .btn-remove-file {
+            width: 28px;
+            height: 28px;
+            padding: 0;
+            z-index: 10;
+            top: 6px;
+            right: 6px;
+            transform: none;
         }
 
         /* Stepper styles tetap sama */
@@ -486,12 +526,19 @@
                                                                     <i class="fas fa-cloud-upload-alt d-block mb-2 fa-2x"></i>
                                                                     Klik atau seret file ke sini
                                                                 </div>
-                                                                <div class="dropzone-preview-container">
+                                                                <div class="dropzone-preview-container position-relative">
                                                                     <img src="" class="dropzone-preview-image" alt="Preview">
+                                                                    <iframe class="dropzone-preview-frame" title="Preview PDF"></iframe>
+                                                                    <div class="dropzone-preview-icon" aria-hidden="true">
+                                                                        <i class="fas fa-file-pdf"></i>
+                                                                    </div>
                                                                     <div class="dropzone-preview-overlay">
                                                                         <div class="dropzone-filename"></div>
                                                                         <div class="dropzone-change-text">Klik untuk ganti</div>
                                                                     </div>
+                                                                    <button type="button" class="btn btn-sm btn-danger position-absolute rounded-circle btn-remove-file" aria-label="Hapus file">
+                                                                        <i class="fas fa-times"></i>
+                                                                    </button>
                                                                 </div>
                                                             </div>
                                                             <div class="invalid-feedback">
@@ -856,6 +903,69 @@
                 });
             });
 
+            // ========================================
+            // INDEXED DB UNTUK FILE UPLOAD
+            // ========================================
+            const dbName = 'AswajaHajiDB';
+            const storeName = 'files_draft';
+            let db;
+
+            const initDB = new Promise((resolve, reject) => {
+                const request = indexedDB.open(dbName, 1);
+                request.onupgradeneeded = (e) => {
+                    e.target.result.createObjectStore(storeName);
+                };
+                request.onsuccess = (e) => {
+                    db = e.target.result;
+                    resolve(db);
+                };
+                request.onerror = (e) => reject(e);
+            });
+
+            const saveFileToDB = async (key, file) => {
+                await initDB;
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction(storeName, 'readwrite');
+                    const store = tx.objectStore(storeName);
+                    store.put(file, key);
+                    tx.oncomplete = () => resolve();
+                    tx.onerror = (e) => reject(e);
+                });
+            };
+
+            const getFileFromDB = async (key) => {
+                await initDB;
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction(storeName, 'readonly');
+                    const store = tx.objectStore(storeName);
+                    const request = store.get(key);
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = (e) => reject(e);
+                });
+            };
+
+            const removeFileFromDB = async (key) => {
+                await initDB;
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction(storeName, 'readwrite');
+                    const store = tx.objectStore(storeName);
+                    store.delete(key);
+                    tx.oncomplete = () => resolve();
+                    tx.onerror = (e) => reject(e);
+                });
+            };
+
+            const clearFilesDB = async () => {
+                await initDB;
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction(storeName, 'readwrite');
+                    const store = tx.objectStore(storeName);
+                    store.clear();
+                    tx.oncomplete = () => resolve();
+                    tx.onerror = (e) => reject(e);
+                });
+            };
+
             // Dropzone handling dengan preview yang lebih kompak
             const dropzones = document.querySelectorAll('.dropzone');
             dropzones.forEach(dropzone => {
@@ -863,9 +973,52 @@
                 const prompt = dropzone.querySelector('.dropzone-prompt');
                 const previewContainer = dropzone.querySelector('.dropzone-preview-container');
                 const previewImage = dropzone.querySelector('.dropzone-preview-image');
+                const previewFrame = dropzone.querySelector('.dropzone-preview-frame');
+                const previewIcon = dropzone.querySelector('.dropzone-preview-icon');
                 const filenameDiv = dropzone.querySelector('.dropzone-filename');
+                const btnRemove = dropzone.querySelector('.btn-remove-file');
+                let preventInitialRestore = false;
+                let currentPreviewUrl = null;
 
-                dropzone.addEventListener('click', () => {
+                const clearPreviewMedia = () => {
+                    if (currentPreviewUrl) {
+                        URL.revokeObjectURL(currentPreviewUrl);
+                        currentPreviewUrl = null;
+                    }
+
+                    previewImage.style.display = 'none';
+                    previewImage.removeAttribute('src');
+
+                    if (previewFrame) {
+                        previewFrame.style.display = 'none';
+                        previewFrame.removeAttribute('src');
+                    }
+
+                    if (previewIcon) {
+                        previewIcon.classList.remove('active');
+                    }
+                };
+
+                const resetDropzoneState = () => {
+                    clearPreviewMedia();
+                    prompt.classList.remove('hidden');
+                    previewContainer.classList.remove('active');
+                    filenameDiv.textContent = '';
+                    filenameDiv.removeAttribute('title');
+                };
+
+                // Load file from IndexedDB on startup
+                getFileFromDB(input.name).then(file => {
+                    if (file && !preventInitialRestore && input.files.length === 0) {
+                        const dt = new DataTransfer();
+                        dt.items.add(file);
+                        input.files = dt.files;
+                        updatePreview(file);
+                    }
+                }).catch(e => console.error("Error loading file:", e));
+
+                dropzone.addEventListener('click', (e) => {
+                    if(e.target.closest('.btn-remove-file')) return; // Abaikan jika klik tombol hapus
                     input.click();
                 });
 
@@ -873,7 +1026,19 @@
                     e.stopPropagation();
                 });
 
+                if (btnRemove) {
+                    btnRemove.addEventListener('click', async (e) => {
+                        e.stopPropagation();
+                        preventInitialRestore = true;
+                        input.value = ''; // Reset file input
+                        resetDropzoneState();
+                        await removeFileFromDB(input.name); // Hapus dari db
+                    });
+                }
+
                 const updatePreview = (file) => {
+                    clearPreviewMedia();
+
                     // Sembunyikan prompt dan tampilkan preview
                     prompt.classList.add('hidden');
                     previewContainer.classList.add('active');
@@ -886,17 +1051,25 @@
                         const reader = new FileReader();
                         reader.onload = () => {
                             previewImage.src = reader.result;
+                            previewImage.style.display = 'block';
                         };
                         reader.readAsDataURL(file);
+                    } else if (file.type === 'application/pdf' && previewFrame) {
+                        currentPreviewUrl = URL.createObjectURL(file);
+                        previewFrame.src = `${currentPreviewUrl}#toolbar=0&navpanes=0&scrollbar=0`;
+                        previewFrame.style.display = 'block';
                     } else {
-                        // Icon PDF yang lebih kecil dan rapi
-                        previewImage.src = 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/PDF_file_icon.svg/1200px-PDF_file_icon.svg.png';
+                        previewIcon?.classList.add('active');
                     }
                 };
 
                 input.addEventListener('change', () => {
                     if (input.files.length > 0) {
+                        preventInitialRestore = true;
                         updatePreview(input.files[0]);
+                        saveFileToDB(input.name, input.files[0]); // Simpan ke db
+                    } else {
+                        resetDropzoneState();
                     }
                 });
 
@@ -913,8 +1086,13 @@
                     e.preventDefault();
                     dropzone.classList.remove('is-dragover');
                     if (e.dataTransfer.files.length > 0) {
-                        input.files = e.dataTransfer.files;
-                        updatePreview(input.files[0]);
+                        preventInitialRestore = true;
+                        const file = e.dataTransfer.files[0];
+                        const dt = new DataTransfer();
+                        dt.items.add(file);
+                        input.files = dt.files;
+                        updatePreview(file);
+                        saveFileToDB(input.name, file); // Simpan ke db
                     }
                 });
             });
@@ -1094,6 +1272,92 @@
                 btnBukaKamera.parentElement.parentElement.classList.remove('d-none');
                 capturedImage = null;
             });
+
+            // ========================================
+            // SIMPAN DATA FORM KE LOCAL STORAGE (DRAFT)
+            // ========================================
+            const formInputs = document.querySelectorAll('#formPendaftaran input:not([type="file"]):not([type="hidden"]), #formPendaftaran textarea, #formPendaftaran select');
+            const LOCAL_STORAGE_KEY = 'draft_pendaftaran_haji';
+
+            function loadDraft() {
+                const draft = localStorage.getItem(LOCAL_STORAGE_KEY);
+                // Hanya load draft jika form tidak memiliki pesan error dari server
+                // karena jika ada error, laravel menggunakan fungsi old()
+                const hasErrors = {{ $errors->any() ? 'true' : 'false' }};
+                
+                if (draft && !hasErrors) {
+                    try {
+                        const data = JSON.parse(draft);
+                        formInputs.forEach(input => {
+                            if (input.name && data[input.name] !== undefined && data[input.name] !== '') {
+                                if (input.type === 'radio' || input.type === 'checkbox') {
+                                    if (input.value === data[input.name] || (input.type === 'checkbox' && data[input.name] === true)) {
+                                        input.checked = true;
+                                        // Panggil manual event change khusus untuk radio tombol untuk trigger fungsi toggle yang ada
+                                        if(input.name === 'jenis_lokasi') { toggleFormLokasi(); }
+                                    }
+                                } else {
+                                    input.value = data[input.name];
+                                    if(input.name === 'jenis_porsi') { toggleJenisPorsi(); }
+                                }
+                            }
+                        });
+                        
+                        // Menangani dropdown Kecamatan & Kelurahan Gresik
+                        if (data['kecamatan_id']) {
+                            // Tunggu opsi kecamatan dimuat oleh fetch
+                            setTimeout(() => {
+                                const kecSelect = document.getElementById('kecamatan');
+                                kecSelect.value = data['kecamatan_id'];
+                                kecSelect.dispatchEvent(new Event('change'));
+                                
+                                if (data['kelurahan_id']) {
+                                    // Tunggu opsi kelurahan dimuat
+                                    setTimeout(() => {
+                                        document.getElementById('kelurahan').value = data['kelurahan_id'];
+                                    }, 1500); // Waktu cukup untuk fetch api/kelurahan
+                                }
+                            }, 500); // Waktu cukup untuk fetch api/kecamatan
+                        }
+                    } catch (e) {
+                        console.error('Gagal memuat draft pendaftaran:', e);
+                    }
+                }
+            }
+
+            function saveDraft() {
+                const data = {};
+                formInputs.forEach(input => {
+                    if (input.name) {
+                        if (input.type === 'radio') {
+                            if (input.checked) data[input.name] = input.value;
+                        } else if (input.type === 'checkbox') {
+                            data[input.name] = input.checked;
+                        } else {
+                            data[input.name] = input.value;
+                        }
+                    }
+                });
+                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
+            }
+
+            // Simpan setiap kali ada perubahan pada input
+            formInputs.forEach(input => {
+                input.addEventListener('input', saveDraft);
+                input.addEventListener('change', saveDraft);
+            });
+
+            // Hapus data dari local storage dan IndexedDB saat berhasil disubmit
+            document.getElementById('formPendaftaran').addEventListener('submit', function() {
+                // Pastikan yang disubmit adalah data yang valid dan lolos required browser
+                if (this.checkValidity()) {
+                    localStorage.removeItem(LOCAL_STORAGE_KEY);
+                    clearFilesDB().catch(console.error);
+                }
+            });
+
+            // Jalankan saat halaman siap
+            loadDraft();
         });
     </script>
 @endpush

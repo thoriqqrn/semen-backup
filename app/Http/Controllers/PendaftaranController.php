@@ -100,7 +100,48 @@ class PendaftaranController extends Controller
             $rules['kelurahan_manual'] = 'required|string|max:100';
         }
         
-        $validatedData = $request->validate($rules);
+        $messages = [
+            'required' => 'Kolom :attribute wajib diisi.',
+            'string' => 'Kolom :attribute harus berupa teks.',
+            'max' => 'Kolom :attribute maksimal :max karakter.',
+            'date' => 'Kolom :attribute harus berupa tanggal yang valid.',
+            'in' => 'Pilihan :attribute tidak valid.',
+            'unique' => ':attribute sudah terdaftar sebelumnya.',
+            'file' => 'Kolom :attribute harus berupa file.',
+            'mimes' => 'Kolom :attribute harus berformat: :values.',
+            'max.file' => 'Ukuran file :attribute maksimal :max Kilobyte.',
+            'accepted' => 'Anda harus menyetujui pernyataan :attribute.',
+            'exists' => 'Pilihan :attribute tidak valid di database kami.',
+        ];
+
+        // Ubah nama atribut agar lebih ramah dibaca pengguna
+        $attributes = [
+            'nama_lengkap' => 'Nama Lengkap',
+            'tempat_lahir' => 'Tempat Lahir',
+            'tanggal_lahir' => 'Tanggal Lahir',
+            'alamat' => 'Alamat',
+            'telepon' => 'Nomor Telepon/HP',
+            'jenis_porsi' => 'Jenis Porsi',
+            'nomor_porsi' => 'Nomor Porsi',
+            'nomor_porsi_penggabungan' => 'Nomor Porsi Penggabungan',
+            'file_ktp' => 'File KTP',
+            'file_kk' => 'File Kartu Keluarga (KK)',
+            'file_akta' => 'File Akta Kelahiran',
+            'file_nikah' => 'File Surat Nikah',
+            'file_ijazah' => 'File Ijazah',
+            'file_bpih' => 'File Bukti Setoran Awal (BPIH)',
+            'file_spph' => 'File Surat Pendaftaran Pergi Haji (SPPH)',
+            'file_paspor' => 'File Paspor',
+            'file_booster1' => 'File Vaksin Booster 1',
+            'file_booster2' => 'File Vaksin Booster 2',
+            'persetujuan' => 'Persetujuan',
+            'kelurahan_id' => 'Kelurahan',
+            'kabupaten_kota' => 'Kabupaten/Kota',
+            'kecamatan_manual' => 'Kecamatan',
+            'kelurahan_manual' => 'Kelurahan/Desa',
+        ];
+
+        $validatedData = $request->validate($rules, $messages, $attributes);
 
         // 2. CEK PORSI TERTINGGI (HANYA UNTUK JENIS BERANGKAT)
         // =====================================================
