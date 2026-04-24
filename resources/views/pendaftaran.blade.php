@@ -140,7 +140,7 @@
                         @if ($max_slots > 0)
                             @if ($sisa_slot > 0)
                                 {{-- 3 Kotak Informasi: Ring 1, Kuota Umum, dan Nomor Porsi --}}
-                                <div class="row g-4 mb-4">
+                                <div class="row g-4 mb-4" id="infoCardsPendaftaran" style="{{ $errors->any() || session('error') ? 'display: none;' : '' }}">
                                     {{-- KOTAK RING 1 --}}
                                     <div class="col-lg-4 col-md-6">
                                         <div class="card border-0 shadow-lg h-100" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); border-radius: 20px;">
@@ -257,21 +257,28 @@
                             </div>
                         @endif
 
-                        <div class="alert alert-warning d-flex align-items-center p-4 rounded-custom mb-5">
-                            <i class="fas fa-exclamation-triangle fa-2x me-4"></i>
-                            <div>
-                                <h4 class="alert-heading fw-bold">Perhatian Sebelum Mengisi!</h4>
-                                <ul>
-                                    <li>Pastikan nama yang Anda masukkan sama persis dengan yang tertera pada  KTP/KK/Akte Kelahiran/Buku Nikah/Ijazah (SD/SLTP/SLTA).</li>
-                                    <li>Pastikan Porsi Haji Anda masuk dalam Keberangkatan Tahun Depan.</li>
-                                    <li>Semua dokumen yang diunggah harus dapat dibaca dengan jelas (tidak buram).</li>
-                                    <li>Ukuran maksimal untuk setiap file adalah 2MB. Format yang diterima: JPG, PNG, PDF.
-                                    </li>
-                                </ul>
+                        <div id="introPendaftaran" style="{{ $errors->any() || session('error') ? 'display: none;' : '' }}">
+                            <div class="alert alert-warning d-flex align-items-center p-4 rounded-custom mb-4">
+                                <i class="fas fa-exclamation-triangle fa-2x me-4"></i>
+                                <div>
+                                    <h4 class="alert-heading fw-bold">Perhatian Sebelum Mengisi!</h4>
+                                    <ul>
+                                        <li>Pastikan nama yang Anda masukkan sama persis dengan yang tertera pada  KTP/KK/Akte Kelahiran/Buku Nikah/Ijazah (SD/SLTP/SLTA).</li>
+                                        <li>Pastikan Porsi Haji Anda masuk dalam Keberangkatan Tahun Depan.</li>
+                                        <li>Semua dokumen yang diunggah harus dapat dibaca dengan jelas (tidak buram).</li>
+                                        <li>Ukuran maksimal untuk setiap file adalah 2MB. Format yang diterima: JPG, PNG, PDF.
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="text-center mb-5">
+                                <button type="button" class="btn btn-success btn-lg px-5 py-3 shadow fw-bold" id="btnMulaiDaftar">
+                                    <i class="fas fa-edit me-2"></i> Daftar Sekarang
+                                </button>
                             </div>
                         </div>
 
-                        <div class="card border-0 shadow-sm rounded-custom">
+                        <div class="card border-0 shadow-sm rounded-custom" id="formPendaftaranCard" style="{{ $errors->any() || session('error') ? '' : 'display: none;' }}">
                             <div class="card-body p-4 p-md-5">
 
                                 <ul class="nav nav-pills justify-content-center mb-4 stepper" id="stepper" role="tablist">
@@ -611,6 +618,24 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             
+            // == TOGGLE FULL FORM ==
+            const btnMulaiDaftar = document.getElementById('btnMulaiDaftar');
+            const introPendaftaran = document.getElementById('introPendaftaran');
+            const formPendaftaranCard = document.getElementById('formPendaftaranCard');
+            const infoCardsPendaftaran = document.getElementById('infoCardsPendaftaran');
+            
+            if(btnMulaiDaftar) {
+                btnMulaiDaftar.addEventListener('click', function() {
+                    introPendaftaran.style.display = 'none';
+                    formPendaftaranCard.style.display = 'block';
+                    if (infoCardsPendaftaran) {
+                        infoCardsPendaftaran.style.display = 'none';
+                    }
+                    
+                    formPendaftaranCard.scrollIntoView({ behavior: 'smooth' });
+                });
+            }
+
             // == TOGGLE FORM GRESIK / LUAR GRESIK ==
             const lokasiGresik = document.getElementById('lokasiGresik');
             const lokasiLuar = document.getElementById('lokasiLuar');

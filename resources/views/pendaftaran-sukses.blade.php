@@ -1,4 +1,4 @@
-@extends('layouts.main')
+git commit -m "first clean commit"@extends('layouts.main')
 
 @section('title', 'Pengajuan Pendaftaran | KBIHU Aswaja')
 
