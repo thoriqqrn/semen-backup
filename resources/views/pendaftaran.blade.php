@@ -282,6 +282,22 @@
             margin-bottom: 0.35rem;
         }
 
+        .quota-full-card {
+            border: 1px solid #fecaca;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%);
+            box-shadow: 0 12px 24px rgba(220, 38, 38, 0.10);
+        }
+
+        .btn-daftar-disabled {
+            background-color: #adb5bd !important;
+            border-color: #adb5bd !important;
+            color: #ffffff !important;
+            cursor: not-allowed;
+            opacity: 0.85;
+            box-shadow: none !important;
+        }
+
         @media (max-width: 768px) {
             .attention-box h4 {
                 font-size: 1.65rem;
@@ -333,6 +349,10 @@
 
 @section('content')
 
+    @php
+        $isKuotaPenuh = ($sisa_slot <= 0);
+    @endphp
+
     <!-- 1. Page Header -->
     <div class="py-5 text-center" style="background-color: #f0f4f2;">
         <div class="container">
@@ -348,8 +368,7 @@
             <div class="row justify-content-center">
                 <div class="col-lg-10">
                     {{-- Letakkan ini di bawah <div class="col-lg-10"> dan di atas alert peringatan --}}
-                        @if ($max_slots > 0)
-                            @if ($sisa_slot > 0)
+                        @if (!$isKuotaPenuh)
                                 <div id="infoCardsPendaftaran" style="{{ $errors->any() || session('error') ? 'display: none;' : '' }}">
                                     <div class="quota-headline d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
                                         <p class="quota-title">KUOTA HARI INI PER {{ $tanggal_hari_ini }}</p>
@@ -441,12 +460,17 @@
                                         </div>
                                     </div>
                                 </div>
-                            @else
-                                <div class="alert alert-danger text-center" role="alert">
-                                    <h4 class="alert-heading fw-bold">Kuota Hari Ini Terpenuhi</h4>
-                                    <p class="mb-0 fs-5">Mohon maaf, kuota pendaftaran untuk hari ini sudah penuh. Silakan daftar kembali di hari berikutnya.</p>
+                        @else
+                            <div class="card quota-full-card mb-4" role="alert">
+                                <div class="card-body p-4 text-center">
+                                    <div class="mb-2">
+                                        <i class="fas fa-calendar-times text-danger" style="font-size: 2rem;"></i>
+                                    </div>
+                                    <h4 class="alert-heading fw-bold text-danger">Kuota Hari Ini Habis / Sudah Terpenuhi</h4>
+                                    <p class="mb-2 fs-5">Mohon maaf, pendaftaran untuk hari ini sudah ditutup karena kuota penuh.</p>
+                                    <p class="mb-0 text-muted">Silakan daftar kembali besok atau menunggu jadwal pembukaan kuota berikutnya dari admin.</p>
                                 </div>
-                            @endif
+                            </div>
                         @endif
 
                         @if(session('error'))
@@ -484,7 +508,10 @@
                                 </div>
                             </div>
                             <div class="text-center mb-5">
-                                <button type="button" class="btn btn-success btn-lg px-5 py-3 shadow fw-bold" id="btnMulaiDaftar">
+                                <button type="button"
+                                    class="btn {{ !$isKuotaPenuh ? 'btn-success' : 'btn-daftar-disabled' }} btn-lg px-5 py-3 shadow fw-bold"
+                                    id="btnMulaiDaftar"
+                                    {{ !$isKuotaPenuh ? '' : 'disabled aria-disabled=true title=Kuota hari ini penuh' }}>
                                     <i class="fas fa-edit me-2"></i> Daftar Sekarang
                                 </button>
                             </div>
@@ -843,7 +870,7 @@
             const formPendaftaranCard = document.getElementById('formPendaftaranCard');
             const infoCardsPendaftaran = document.getElementById('infoCardsPendaftaran');
             
-            if(btnMulaiDaftar) {
+            if(btnMulaiDaftar && !btnMulaiDaftar.disabled) {
                 btnMulaiDaftar.addEventListener('click', function() {
                     introPendaftaran.style.display = 'none';
                     formPendaftaranCard.style.display = 'block';
