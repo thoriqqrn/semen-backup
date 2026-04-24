@@ -25,6 +25,7 @@
                     <thead>
                         <tr>
                             <th>No</th>
+                            <th>Kode Pendaftaran</th>
                             <th>Nama Lengkap</th>
                             <th>Tempat Lahir</th>
                             <th>Tgl Lahir</th>
@@ -44,6 +45,11 @@
                             {{-- Memberi highlight pada baris jika pendaftar adalah RING 1 --}}
                             <tr class="{{ ($pendaftar->kelurahan_id && $pendaftar->kelurahan->ring_status == 1) ? 'table-success' : '' }}">
                                 <td>{{ $loop->iteration }}</td>
+                                <td>
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-2 fw-semibold">
+                                        {{ $pendaftar->kode_pendaftaran ?? '-' }}
+                                    </span>
+                                </td>
                                 <td>{{ $pendaftar->nama_lengkap }}</td>
                                 <td><small>{{ $pendaftar->tempat_lahir }}</small></td>
                                 <td><small>{{ \Carbon\Carbon::parse($pendaftar->tanggal_lahir)->format('d M Y') }}</small></td>
@@ -159,8 +165,8 @@
                             doc.styles.tableHeader.bold = true;
                             doc.styles.tableHeader.fillColor = '#28a745';
                             doc.styles.tableHeader.color = 'white';
-                            // Update: 12 kolom (No, Nama, Tempat, Tgl, Alamat, Porsi, HP, Tgl Daftar, Kec, Kel, Ring, Status)
-                            doc.content[1].table.widths = ['3%', '11%', '8%', '7%', '11%', '7%', '8%', '7%', '9%', '9%', '6%', '8%'];
+                            // Update: 13 kolom (No, Kode, Nama, Tempat, Tgl, Alamat, Porsi, HP, Tgl Daftar, Kec, Kel, Ring, Status)
+                            doc.content[1].table.widths = ['3%', '9%', '10%', '7%', '6%', '10%', '7%', '7%', '7%', '9%', '9%', '6%', '10%'];
                         }
                     }
                 ]
