@@ -24,7 +24,7 @@ class SettingSeeder extends Seeder
             ['key' => 'kuota_umum'],
             ['value' => '20'] // Default 20 kursi untuk Umum
         );
-        
+
         // Setting max_porsi tetap ada
         Setting::updateOrCreate(
             ['key' => 'max_porsi'],

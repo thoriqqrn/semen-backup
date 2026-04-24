@@ -29,7 +29,7 @@ class PendaftaranController extends Controller
         // Hitung pendaftar Ring 1 (yang punya kelurahan_id dan ring_status = 1)
         $peserta_ring1 = Pendaftar::whereHas('kelurahan', function($q) {
             $q->where('ring_status', 1);
-        })->count();
+        })->whereDate('created_at', today())->count();
         
         // Hitung pendaftar Umum (NULL kelurahan_id ATAU ring_status != 1)
         $peserta_umum = Pendaftar::where(function($q) {
@@ -37,7 +37,7 @@ class PendaftaranController extends Controller
               ->orWhereHas('kelurahan', function($sub) {
                   $sub->where('ring_status', '!=', 1);
               });
-        })->count();
+        })->whereDate('created_at', today())->count();
         
         // Hitung total dan sisa
         $peserta_terdaftar = $peserta_ring1 + $peserta_umum;
@@ -45,10 +45,15 @@ class PendaftaranController extends Controller
         $sisa_ring1 = $kuota_ring1 - $peserta_ring1;
         $sisa_umum = $kuota_umum - $peserta_umum;
 
+        // Data kuota harian diturunkan dari kuota Ring 1 + Umum
+        $peserta_hari_ini = $peserta_terdaftar;
+        $tanggal_hari_ini = now()->format('d-m-Y');
+
         return view('pendaftaran', compact(
             'sisa_slot', 'max_slots', 'max_porsi', 
             'peserta_terdaftar', 'peserta_ring1', 'peserta_umum',
-            'kuota_ring1', 'kuota_umum', 'sisa_ring1', 'sisa_umum'
+            'kuota_ring1', 'kuota_umum', 'sisa_ring1', 'sisa_umum',
+            'peserta_hari_ini', 'tanggal_hari_ini'
         ));
     }
 
@@ -175,11 +180,11 @@ class PendaftaranController extends Controller
             // Cek kuota Ring 1
             $peserta_ring1 = Pendaftar::whereHas('kelurahan', function($q) {
                 $q->where('ring_status', 1);
-            })->count();
+            })->whereDate('created_at', today())->count();
             
             if ($peserta_ring1 >= $kuota_ring1) {
                 return back()->withInput()->with('error', 
-                    'Maaf, kuota Ring 1 (Kelurahan Prioritas) sudah penuh (' . $kuota_ring1 . ' kursi). Silakan hubungi admin untuk informasi lebih lanjut.');
+                    'Kuota Ring 1 hari ini sudah terpenuhi (' . $kuota_ring1 . ' kursi). Silakan daftar di hari berikutnya.');
             }
         } else {
             // Cek kuota Umum
@@ -188,11 +193,11 @@ class PendaftaranController extends Controller
                   ->orWhereHas('kelurahan', function($sub) {
                       $sub->where('ring_status', '!=', 1);
                   });
-            })->count();
+            })->whereDate('created_at', today())->count();
             
             if ($peserta_umum >= $kuota_umum) {
                 return back()->withInput()->with('error', 
-                    'Maaf, kuota Umum (Luar Ring 1) sudah penuh (' . $kuota_umum . ' kursi). Silakan hubungi admin untuk informasi lebih lanjut.');
+                    'Kuota Umum hari ini sudah terpenuhi (' . $kuota_umum . ' kursi). Silakan daftar di hari berikutnya.');
             }
         }
 

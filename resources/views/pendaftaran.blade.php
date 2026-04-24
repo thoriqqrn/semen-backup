@@ -153,6 +153,177 @@
             background-color: #fff;
             color: #28a745;
         }
+
+        .quota-headline {
+            background: linear-gradient(135deg, #f7fff9 0%, #f1fdf6 100%);
+            border: 1px solid #cfeedd;
+            border-radius: 16px;
+            padding: 0.95rem 1.05rem;
+            box-shadow: 0 10px 24px rgba(22, 163, 74, 0.10);
+        }
+
+        .quota-title {
+            font-size: 1.05rem;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            color: #14532d;
+            margin: 0;
+            text-transform: uppercase;
+        }
+
+        .quota-badge {
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            padding: 0.4rem 0.75rem;
+        }
+
+        .quota-card {
+            border-radius: 16px;
+            border: 1px solid #d9efe2;
+            box-shadow: 0 12px 26px rgba(22, 163, 74, 0.14);
+            background: #ffffff;
+            height: 100%;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .quota-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 16px 28px rgba(22, 163, 74, 0.18);
+        }
+
+        .quota-card .card-body {
+            padding: 1rem;
+        }
+
+        .quota-chip {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            margin-bottom: 0.55rem;
+        }
+
+        .quota-number {
+            font-size: 1.75rem;
+            line-height: 1;
+            font-weight: 800;
+            margin-bottom: 0.2rem;
+        }
+
+        .quota-subtext {
+            font-size: 0.82rem;
+            color: #64748b;
+            line-height: 1.35;
+            min-height: 2.2rem;
+        }
+
+        .quota-meta {
+            border-top: 1px dashed #e2e8f0;
+            margin-top: 0.8rem;
+            padding-top: 0.72rem;
+            display: flex;
+            justify-content: space-between;
+            gap: 0.6rem;
+        }
+
+        .quota-grid .col {
+            display: flex;
+        }
+
+        .quota-grid .quota-card {
+            width: 100%;
+        }
+
+        .quota-meta strong {
+            display: block;
+            font-size: 1rem;
+            line-height: 1;
+        }
+
+        .quota-meta small {
+            font-size: 0.73rem;
+            color: #64748b;
+        }
+
+        .attention-box {
+            background: linear-gradient(135deg, #fff4d6 0%, #ffeab3 100%);
+            border: 1px solid #f4cd67;
+            border-radius: 18px;
+            padding: 1.35rem 1.25rem;
+        }
+
+        .attention-box h4 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #6b4f00;
+            margin-bottom: 0.7rem;
+        }
+
+        .attention-lead {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #6b4f00;
+            margin-bottom: 0.5rem;
+        }
+
+        .attention-box ul {
+            margin-bottom: 0;
+            padding-left: 1.35rem;
+        }
+
+        .attention-box li {
+            font-size: 1.22rem;
+            line-height: 1.55;
+            color: #5b4200;
+            margin-bottom: 0.35rem;
+        }
+
+        @media (max-width: 768px) {
+            .attention-box h4 {
+                font-size: 1.65rem;
+            }
+
+            .attention-box li {
+                font-size: 1.05rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .stepper {
+                display: grid;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 0.4rem;
+                justify-content: initial !important;
+            }
+
+            .stepper .nav-item {
+                width: 100%;
+                margin: 0 !important;
+            }
+
+            .stepper .nav-link {
+                flex-direction: column;
+                justify-content: center;
+                gap: 0.2rem;
+                padding: 0.5rem 0.3rem;
+                border-radius: 12px;
+                min-height: 64px;
+                font-size: 0.78rem;
+                text-align: center;
+                line-height: 1.2;
+            }
+
+            .stepper .step-index {
+                margin-right: 0;
+                width: 22px;
+                height: 22px;
+                font-size: 0.75rem;
+            }
+        }
     </style>
     
     {{-- SweetAlert2 CDN --}}
@@ -179,93 +350,92 @@
                     {{-- Letakkan ini di bawah <div class="col-lg-10"> dan di atas alert peringatan --}}
                         @if ($max_slots > 0)
                             @if ($sisa_slot > 0)
-                                {{-- 3 Kotak Informasi: Ring 1, Kuota Umum, dan Nomor Porsi --}}
-                                <div class="row g-4 mb-4" id="infoCardsPendaftaran" style="{{ $errors->any() || session('error') ? 'display: none;' : '' }}">
-                                    {{-- KOTAK RING 1 --}}
-                                    <div class="col-lg-4 col-md-6">
-                                        <div class="card border-0 shadow-lg h-100" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); border-radius: 20px;">
-                                            <div class="card-body p-4 d-flex flex-column">
-                                                <div class="text-center mb-4">
-                                                    <div class="mb-3">
-                                                        <i class="fas fa-star" style="font-size: 3.5rem; color: rgba(255,255,255,0.9);"></i>
-                                                    </div>
-                                                    <h3 class="fw-bold text-white mb-2">RING 1</h3>
-                                                    <p class="text-white-50 mb-0">Warga Kelurahan Prioritas</p>
-                                                </div>
-                                                
-                                                <div class="bg-white rounded-3 p-4 mt-auto" style="background: rgba(255,255,255,0.95) !important;">
-                                                    <div class="text-center mb-3">
-                                                        <h1 class="display-4 fw-bold mb-0" style="color: #11998e;">{{ $kuota_ring1 }}</h1>
-                                                        <p class="text-muted mb-0">Total Kuota</p>
-                                                    </div>
-                                                    <hr class="my-3">
-                                                    <div class="d-flex justify-content-around">
-                                                        <div class="text-center">
-                                                            <i class="fas fa-user-check text-success mb-2" style="font-size: 1.5rem;"></i>
-                                                            <h4 class="fw-bold mb-0" style="color: #11998e;">{{ $peserta_ring1 }}</h4>
-                                                            <small class="text-muted">Terdaftar</small>
-                                                        </div>
-                                                        <div class="text-center">
-                                                            <i class="fas fa-chair text-success mb-2" style="font-size: 1.5rem;"></i>
-                                                            <h4 class="fw-bold mb-0" style="color: #11998e;">{{ $sisa_ring1 }}</h4>
-                                                            <small class="text-muted">Sisa Kuota</small>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                <div id="infoCardsPendaftaran" style="{{ $errors->any() || session('error') ? 'display: none;' : '' }}">
+                                    <div class="quota-headline d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                                        <p class="quota-title">KUOTA HARI INI PER {{ $tanggal_hari_ini }}</p>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            <span class="badge text-bg-success quota-badge">Kuota Ring 1 + Umum: {{ $max_slots }}</span>
+                                            <span class="badge text-bg-primary quota-badge">Terisi Hari Ini: {{ $peserta_hari_ini }}</span>
+                                            <span class="badge text-bg-warning quota-badge">Sisa Hari Ini: {{ $sisa_slot }}</span>
                                         </div>
                                     </div>
 
-                                    {{-- KOTAK KUOTA UMUM --}}
-                                    <div class="col-lg-4 col-md-6">
-                                        <div class="card border-0 shadow-lg h-100" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 20px;">
-                                            <div class="card-body p-4 d-flex flex-column">
-                                                <div class="text-center mb-4">
-                                                    <div class="mb-3">
-                                                        <i class="fas fa-globe-asia" style="font-size: 3.5rem; color: rgba(255,255,255,0.9);"></i>
+                                    {{-- 3 Kotak Informasi: Ring 1, Kuota Umum, dan Nomor Porsi --}}
+                                    <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3 mb-4 quota-grid">
+                                        {{-- KOTAK RING 1 --}}
+                                        <div class="col">
+                                            <div class="card quota-card">
+                                                <div class="card-body">
+                                                    <div class="quota-chip" style="background:#dcfce7;color:#166534;">
+                                                        <i class="fas fa-id-card"></i>
                                                     </div>
-                                                    <h3 class="fw-bold text-white mb-2">UMUM</h3>
-                                                    <p class="text-white-50 mb-0">Warga Luar Ring 1 & Luar Kota</p>
-                                                </div>
-                                                
-                                                <div class="bg-white rounded-3 p-4 mt-auto" style="background: rgba(255,255,255,0.95) !important;">
-                                                    <div class="text-center mb-3">
-                                                        <h1 class="display-4 fw-bold mb-0" style="color: #667eea;">{{ $kuota_umum }}</h1>
-                                                        <p class="text-muted mb-0">Total Kuota</p>
-                                                    </div>
-                                                    <hr class="my-3">
-                                                    <div class="d-flex justify-content-around">
-                                                        <div class="text-center">
-                                                            <i class="fas fa-user-check text-primary mb-2" style="font-size: 1.5rem;"></i>
-                                                            <h4 class="fw-bold mb-0" style="color: #667eea;">{{ $peserta_umum }}</h4>
-                                                            <small class="text-muted">Terdaftar</small>
+                                                    <h5 class="fw-bold mb-1">RING 1</h5>
+                                                    <p class="quota-subtext mb-0">Berdasarkan KTP, bertempat tinggal dan berdomisili di sekitar Pabrik Semen Indonesia Gresik.</p>
+                                                    <div class="mt-2 quota-number" style="color:#166534;">{{ $kuota_ring1 }}</div>
+                                                    <small class="text-muted">Total Kuota Ring 1</small>
+
+                                                    <div class="quota-meta">
+                                                        <div>
+                                                            <strong style="color:#166534;">{{ $peserta_ring1 }}</strong>
+                                                            <small>Terdaftar</small>
                                                         </div>
-                                                        <div class="text-center">
-                                                            <i class="fas fa-chair text-primary mb-2" style="font-size: 1.5rem;"></i>
-                                                            <h4 class="fw-bold mb-0" style="color: #667eea;">{{ $sisa_umum }}</h4>
-                                                            <small class="text-muted">Sisa Kuota</small>
+                                                        <div class="text-end">
+                                                            <strong style="color:#166534;">{{ $sisa_ring1 }}</strong>
+                                                            <small>Sisa Kuota</small>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    
-                                    {{-- KOTAK NOMOR PORSI --}}
-                                    <div class="col-lg-4 col-md-12">
-                                        <div class="card border-0 shadow-lg h-100" style="background: linear-gradient(135deg, #f5564e 0%, #d43f3a 100%); border-radius: 20px;">
-                                            <div class="card-body p-4 d-flex flex-column justify-content-center text-center">
-                                                <div class="mb-3">
-                                                    <i class="fas fa-ticket-alt" style="font-size: 3.5rem; color: rgba(255,255,255,0.9);"></i>
+
+                                        {{-- KOTAK KUOTA UMUM --}}
+                                        <div class="col">
+                                            <div class="card quota-card">
+                                                <div class="card-body">
+                                                    <div class="quota-chip" style="background:#dbeafe;color:#1d4ed8;">
+                                                        <i class="fas fa-users"></i>
+                                                    </div>
+                                                    <h5 class="fw-bold mb-1">UMUM</h5>
+                                                    <p class="quota-subtext mb-0">Pendaftar di luar kriteria Ring 1 atau dari luar Kabupaten Gresik.</p>
+                                                    <div class="mt-2 quota-number" style="color:#1d4ed8;">{{ $kuota_umum }}</div>
+                                                    <small class="text-muted">Total Kuota Umum</small>
+
+                                                    <div class="quota-meta">
+                                                        <div>
+                                                            <strong style="color:#1d4ed8;">{{ $peserta_umum }}</strong>
+                                                            <small>Terdaftar</small>
+                                                        </div>
+                                                        <div class="text-end">
+                                                            <strong style="color:#1d4ed8;">{{ $sisa_umum }}</strong>
+                                                            <small>Sisa Kuota</small>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                <h3 class="fw-bold text-white mb-2">Porsi Tertinggi Saat Ini</h3>
-                                                <p class="text-white-50 mb-4">Porsi tertinggi berubah sewaktu-waktu sesuai ketentuan BP Haji RI</p>
-                                                
-                                                <div class="bg-white rounded-3 p-4" style="background: rgba(255,255,255,0.95) !important;">
-                                                    <h1 class="display-4 fw-bold mb-0" style="color: #d43f3a;">
-                                                        {{ $max_porsi }}
-                                                    </h1>
-                                                    <p class="text-muted mb-0">Nomor Porsi Tertinggi</p>
+                                            </div>
+                                        </div>
+                                    
+                                        {{-- KOTAK NOMOR PORSI --}}
+                                        <div class="col">
+                                            <div class="card quota-card">
+                                                <div class="card-body">
+                                                    <div class="quota-chip" style="background:#fee2e2;color:#dc2626;">
+                                                        <i class="fas fa-ticket-alt"></i>
+                                                    </div>
+                                                    <h5 class="fw-bold mb-1">Porsi Tertinggi Saat Ini</h5>
+                                                    <p class="quota-subtext mb-0">Diperbarui sesuai ketentuan BP Haji RI dan dapat berubah sewaktu-waktu.</p>
+                                                    <div class="mt-2 quota-number" style="color:#dc2626;">{{ $max_porsi }}</div>
+                                                    <small class="text-muted">Nomor Porsi Tertinggi</small>
+
+                                                    <div class="quota-meta">
+                                                        <div>
+                                                            <strong style="color:#dc2626;">{{ $max_slots }}</strong>
+                                                            <small>Kuota Total</small>
+                                                        </div>
+                                                        <div class="text-end">
+                                                            <strong style="color:#dc2626;">{{ $sisa_slot }}</strong>
+                                                            <small>Sisa Total</small>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -273,9 +443,8 @@
                                 </div>
                             @else
                                 <div class="alert alert-danger text-center" role="alert">
-                                    <h4 class="alert-heading fw-bold">Pendaftaran Ditutup</h4>
-                                    <p class="mb-0 fs-5">Mohon maaf, kuota pendaftaran haji untuk tahun ini telah terpenuhi. Silakan
-                                        kembali lagi untuk informasi pendaftaran tahun berikutnya.</p>
+                                    <h4 class="alert-heading fw-bold">Kuota Hari Ini Terpenuhi</h4>
+                                    <p class="mb-0 fs-5">Mohon maaf, kuota pendaftaran untuk hari ini sudah penuh. Silakan daftar kembali di hari berikutnya.</p>
                                 </div>
                             @endif
                         @endif
@@ -298,16 +467,19 @@
                         @endif
 
                         <div id="introPendaftaran" style="{{ $errors->any() || session('error') ? 'display: none;' : '' }}">
-                            <div class="alert alert-warning d-flex align-items-center p-4 rounded-custom mb-4">
+                            <div class="attention-box d-flex align-items-start p-4 mb-4">
                                 <i class="fas fa-exclamation-triangle fa-2x me-4"></i>
                                 <div>
                                     <h4 class="alert-heading fw-bold">Perhatian Sebelum Mengisi!</h4>
+                                    <p class="attention-lead">Mohon baca perlahan agar proses verifikasi lebih cepat dan tidak ditolak.</p>
                                     <ul>
                                         <li>Pastikan nama yang Anda masukkan sama persis dengan yang tertera pada  KTP/KK/Akte Kelahiran/Buku Nikah/Ijazah (SD/SLTP/SLTA).</li>
                                         <li>Pastikan Porsi Haji Anda masuk dalam Keberangkatan Tahun Depan.</li>
                                         <li>Semua dokumen yang diunggah harus dapat dibaca dengan jelas (tidak buram).</li>
                                         <li>Ukuran maksimal untuk setiap file adalah 2MB. Format yang diterima: JPG, PNG, PDF.
                                         </li>
+                                        <li>Khusus Ring 1: berdasarkan KTP, bertempat tinggal dan berdomisili di sekitar Pabrik Semen Indonesia Gresik.</li>
+                                        <li>Jika kuota harian sudah penuh, pendaftaran akan dibuka kembali pada hari berikutnya.</li>
                                     </ul>
                                 </div>
                             </div>
