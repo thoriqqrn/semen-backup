@@ -634,6 +634,10 @@
                                                         </div>
                                                     </div>
 
+                                                    <div class="col-12 mt-2">
+                                                        <div id="quotaGateMessage" class="alert alert-danger d-none mb-0" role="alert"></div>
+                                                    </div>
+
                                                     <div class="col-12">
                                                         <label for="alamat" class="form-label">Detail Alamat (Nama Jalan,
                                                             No. Rumah, RT/RW)</label>
@@ -891,6 +895,7 @@
             // Dropdown elements
             const kecamatanSelect = document.getElementById('kecamatan');
             const kelurahanSelect = document.getElementById('kelurahan');
+            const quotaGateMessage = document.getElementById('quotaGateMessage');
             
             // Manual input elements
             const kabupatenInput = document.getElementById('kabupaten_kota');
@@ -935,6 +940,8 @@
                     kelurahanSelect.value = '';
                     kelurahanSelect.disabled = true;
                 }
+
+                evaluateQuotaGate();
             }
 
             lokasiGresik.addEventListener('change', toggleFormLokasi);
@@ -971,6 +978,42 @@
                     inputPorsiPenggabungan.value = '';
                 }
             }
+
+            function evaluateQuotaGate() {
+                if (!quotaGateMessage) return true;
+
+                const jenisLokasi = document.querySelector('input[name="jenis_lokasi"]:checked')?.value || 'gresik';
+                const kelurahanId = kelurahanSelect?.value;
+                const selectedOption = kelurahanSelect?.options?.[kelurahanSelect.selectedIndex];
+                const kelurahanRingStatus = selectedOption && selectedOption.dataset ? selectedOption.dataset.ringStatus : null;
+                const ringStatus = kelurahanRingStatus ? parseInt(kelurahanRingStatus, 10) : null;
+
+                let blocked = false;
+                let message = '';
+
+                if (jenisLokasi === 'gresik' && kelurahanId) {
+                    if (ringStatus === 1) {
+                        blocked = {{ $sisa_ring1 <= 0 ? 'true' : 'false' }};
+                        message = 'Kuota Ring 1 hari ini sudah habis. Pilih kelurahan lain atau daftar kembali besok.';
+                    } else {
+                        blocked = {{ $sisa_umum <= 0 ? 'true' : 'false' }};
+                        message = 'Kuota Umum hari ini sudah habis. Silakan daftar kembali besok.';
+                    }
+                } else if (jenisLokasi === 'luar') {
+                    blocked = {{ $sisa_umum <= 0 ? 'true' : 'false' }};
+                    message = 'Kuota Umum hari ini sudah habis. Silakan daftar kembali besok.';
+                }
+
+                if (blocked) {
+                    quotaGateMessage.textContent = message;
+                    quotaGateMessage.classList.remove('d-none');
+                    return false;
+                }
+
+                quotaGateMessage.classList.add('d-none');
+                quotaGateMessage.textContent = '';
+                return true;
+            }
             
             // Event listener untuk perubahan jenis porsi
             jenisPorsiSelect.addEventListener('change', toggleJenisPorsi);
@@ -1006,14 +1049,22 @@
                                 const option = document.createElement('option');
                                 option.value = kelurahan.id;
                                 option.textContent = kelurahan.nama_kelurahan;
+                                option.dataset.ringStatus = kelurahan.ring_status ?? '';
                                 kelurahanSelect.appendChild(option);
                             });
                             kelurahanSelect.disabled = false;
+                            evaluateQuotaGate();
                         });
                 } else {
                     kelurahanSelect.innerHTML = '<option value="">Pilih Kecamatan Terlebih Dahulu</option>';
+                    evaluateQuotaGate();
                 }
             });
+
+            kelurahanSelect.addEventListener('change', evaluateQuotaGate);
+            kabupatenInput.addEventListener('input', evaluateQuotaGate);
+            kecamatanInput.addEventListener('input', evaluateQuotaGate);
+            kelurahanInput.addEventListener('input', evaluateQuotaGate);
             
             const form = document.getElementById('formPendaftaran');
             const nextButtons = document.querySelectorAll('.next-step');
@@ -1057,6 +1108,10 @@
                     });
 
                     if (allValid) {
+                        if (!evaluateQuotaGate()) {
+                            return;
+                        }
+
                         // CEK NOMOR PORSI SAAT DARI STEP 1 KE STEP 2 (DATA DIRI → DOKUMEN)
                         if (activeIndex === 0) {
                             const jenisPorsi = document.getElementById('jenis_porsi').value;
