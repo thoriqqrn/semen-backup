@@ -107,4 +107,10 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::put('/settings', [AdminSettingController::class, 'update'])->name('settings.update');
     Route::get('/wilayah', [AdminWilayahController::class, 'index'])->name('wilayah.index');
     Route::put('/wilayah', [AdminWilayahController::class, 'update'])->name('wilayah.update');
+    Route::post('/wilayah/kecamatan', [AdminWilayahController::class, 'storeKecamatan'])->name('wilayah.kecamatan.store');
+    Route::put('/wilayah/kecamatan/{kecamatan}', [AdminWilayahController::class, 'updateKecamatan'])->name('wilayah.kecamatan.update');
+    Route::delete('/wilayah/kecamatan/{kecamatan}', [AdminWilayahController::class, 'destroyKecamatan'])->name('wilayah.kecamatan.destroy');
+    Route::post('/wilayah/kelurahan', [AdminWilayahController::class, 'storeKelurahan'])->name('wilayah.kelurahan.store');
+    Route::put('/wilayah/kelurahan/{kelurahan}', [AdminWilayahController::class, 'updateKelurahan'])->name('wilayah.kelurahan.update');
+    Route::delete('/wilayah/kelurahan/{kelurahan}', [AdminWilayahController::class, 'destroyKelurahan'])->name('wilayah.kelurahan.destroy');
 });

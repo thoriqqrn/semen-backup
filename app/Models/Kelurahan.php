@@ -9,8 +9,12 @@ class Kelurahan extends Model
 {
     use HasFactory;
 
-    // Tambahkan properti ini untuk mengizinkan mass update di controller
-    protected $fillable = ['ring_status'];
+    // Field yang boleh diisi mass assignment untuk CRUD wilayah
+    protected $fillable = [
+        'kecamatan_id',
+        'nama_kelurahan',
+        'ring_status',
+    ];
 
     /**
      * Mendefinisikan relasi bahwa setiap Kelurahan "milik" satu Kecamatan.
