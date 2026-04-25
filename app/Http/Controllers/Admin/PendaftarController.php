@@ -19,9 +19,9 @@ class PendaftarController extends Controller
      */
     public function index()
     {
-        // Urutkan berdasarkan waktu pendaftaran (siapa duluan daftar)
+        // Urutkan dari yang terbaru duluan agar pendaftar baru muncul di atas
         $pendaftars = Pendaftar::with('kelurahan')
-            ->orderBy('created_at', 'asc')
+            ->orderBy('created_at', 'desc')
             ->get();
 
         return view('admin.pendaftar.index', compact('pendaftars'));
