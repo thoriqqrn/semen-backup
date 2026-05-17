@@ -74,6 +74,7 @@ class PendaftaranController extends Controller
             'alamat' => 'required|string',
             'telepon' => 'required|string|max:20',
             'jenis_porsi' => 'required|in:berangkat,penggabungan,mutasi',
+            'referral_code' => 'nullable|string|max:255',
             'nomor_porsi' => 'required|string|max:50|unique:pendaftars,nomor_porsi_haji',
             'nomor_porsi_penggabungan' => 'nullable|string|max:50', // Hanya untuk penggabungan
             'file_ktp' => 'required|file|mimes:jpg,png,pdf|max:2048',
@@ -127,6 +128,7 @@ class PendaftaranController extends Controller
             'alamat' => 'Alamat',
             'telepon' => 'Nomor Telepon/HP',
             'jenis_porsi' => 'Jenis Porsi',
+            'referral_code' => 'Kode Referral',
             'nomor_porsi' => 'Nomor Porsi',
             'nomor_porsi_penggabungan' => 'Nomor Porsi Penggabungan',
             'file_ktp' => 'File KTP',
@@ -225,6 +227,7 @@ class PendaftaranController extends Controller
                 'alamat' => $validatedData['alamat'],
                 'nomor_hp' => $validatedData['telepon'],
                 'jenis_porsi' => $validatedData['jenis_porsi'],
+                'referral_code' => $validatedData['referral_code'] ?? null,
                 'nomor_porsi_haji' => $validatedData['nomor_porsi'],
                 'nomor_porsi_penggabungan' => $validatedData['nomor_porsi_penggabungan'] ?? null,
                 'status_pendaftaran' => 'menunggu', // Default: menunggu verifikasi admin

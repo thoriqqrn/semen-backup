@@ -102,6 +102,7 @@
                 <div class="card-body">
                     <table class="table table-bordered">
                         <tr><th style="width: 30%;">Kode Pendaftaran</th><td><span class="fw-bold">{{ $pendaftar->kode_pendaftaran }}</span></td></tr>
+                        <tr><th>Kode Referral</th><td>{{ $pendaftar->referral_code ?? '-' }}</td></tr>
                         <tr><th>Nama Lengkap</th><td>{{ $pendaftar->nama_lengkap }}</td></tr>
                         <tr><th>Tempat, Tanggal Lahir</th><td>{{ $pendaftar->tempat_lahir }}, {{ \Carbon\Carbon::parse($pendaftar->tanggal_lahir)->format('d F Y') }}</td></tr>
                         <tr>

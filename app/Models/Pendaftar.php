@@ -23,6 +23,7 @@ class Pendaftar extends Model
         'kelurahan_id',         // Sekarang bisa null
         'nomor_hp',
         'jenis_porsi',          // berangkat atau penggabungan
+        'referral_code',
         'nomor_porsi_haji',
         'nomor_porsi_penggabungan', // Nomor porsi yang digabungkan
         'email',

@@ -26,6 +26,7 @@
                         <tr>
                             <th>No</th>
                             <th>Kode Pendaftaran</th>
+                            <th>Kode Referral</th>
                             <th>Nama Lengkap</th>
                             <th>Tempat Lahir</th>
                             <th>Tgl Lahir</th>
@@ -50,6 +51,7 @@
                                         {{ $pendaftar->kode_pendaftaran ?? '-' }}
                                     </span>
                                 </td>
+                                <td><small>{{ $pendaftar->referral_code ?? '-' }}</small></td>
                                 <td>{{ $pendaftar->nama_lengkap }}</td>
                                 <td><small>{{ $pendaftar->tempat_lahir }}</small></td>
                                 <td><small>{{ \Carbon\Carbon::parse($pendaftar->tanggal_lahir)->format('d M Y') }}</small></td>
@@ -165,8 +167,8 @@
                             doc.styles.tableHeader.bold = true;
                             doc.styles.tableHeader.fillColor = '#28a745';
                             doc.styles.tableHeader.color = 'white';
-                            // Update: 13 kolom (No, Kode, Nama, Tempat, Tgl, Alamat, Porsi, HP, Tgl Daftar, Kec, Kel, Ring, Status)
-                            doc.content[1].table.widths = ['3%', '9%', '10%', '7%', '6%', '10%', '7%', '7%', '7%', '9%', '9%', '6%', '10%'];
+                            // Update: 14 kolom (No, Kode, Referral, Nama, Tempat, Tgl, Alamat, Porsi, HP, Tgl Daftar, Kec, Kel, Ring, Status)
+                            doc.content[1].table.widths = ['3%', '8%', '8%', '9%', '6%', '6%', '10%', '6%', '6%', '6%', '8%', '8%', '5%', '9%'];
                         }
                     }
                 ]

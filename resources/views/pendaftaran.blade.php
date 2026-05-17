@@ -666,10 +666,19 @@
                                                         </select>
                                                         <div class="invalid-feedback">Jenis porsi wajib dipilih.</div>
                                                     </div>
+
+                                                    <div class="col-md-6">
+                                                        <label for="referral_code" class="form-label fw-bold">6. Kode Referral (Opsional)</label>
+                                                        <input type="text" id="referral_code" name="referral_code" class="form-control"
+                                                            value="{{ old('referral_code') }}" placeholder="Kode pendaftaran anggota keluarga">
+                                                        <small class="text-muted">
+                                                            <i class="fas fa-info-circle"></i> Isi jika Anda mendaftar dengan keluarga yang sudah terdaftar.
+                                                        </small>
+                                                    </div>
                                                     
                                                     {{-- NOMOR PORSI UTAMA (MUNCUL SETELAH PILIH JENIS) --}}
                                                     <div class="col-md-6" id="fieldNomorPorsi" style="display: none;">
-                                                        <label for="nomor_porsi" class="form-label fw-bold">6. Nomor Porsi Haji</label>
+                                                        <label for="nomor_porsi" class="form-label fw-bold">7. Nomor Porsi Haji</label>
                                                         <input type="text" id="nomor_porsi" name="nomor_porsi" class="form-control"
                                                             value="{{ old('nomor_porsi') }}" required>
                                                         <small class="text-muted" id="hintNomorPorsi">
