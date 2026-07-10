@@ -45,7 +45,7 @@ class OcrController extends Controller
             // ===============================================
             // GUNAKAN GEMINI 2.5 FLASH (MODEL TERBARU)
             // ===============================================
-            $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+            $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent";
             
             $prompt = "Analisis gambar Kartu Tanda Penduduk (KTP) Indonesia ini dengan teliti.
 
@@ -235,7 +235,7 @@ Jawab dalam format JSON murni:";
                 'mime_type' => $mimeType
             ]);
 
-            $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+            $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent";
             
             // Prompt untuk extract SEMUA anggota keluarga
             $prompt = "Analisis gambar Kartu Keluarga (KK) Indonesia ini dengan sangat teliti.
@@ -439,7 +439,7 @@ Jawab dalam format JSON murni:";
                 throw new \Exception('GEMINI_API_KEY tidak ditemukan');
             }
 
-            $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+            $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent";
             
             $response = Http::withHeaders([
                 'x-goog-api-key' => $apiKey,

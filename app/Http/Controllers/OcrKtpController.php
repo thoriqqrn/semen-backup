@@ -44,7 +44,7 @@ class OcrKtpController extends Controller
                 "- Response HANYA JSON, tidak boleh ada teks lain, markdown, atau backtick";
 
             // Send request to Gemini API (sesuai format Admin/OcrController)
-            $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+            $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent";
             
             $response = Http::timeout(30)
                 ->withOptions(['verify' => false]) // Disable SSL verification for development
