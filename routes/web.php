@@ -100,6 +100,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     // == OCR ==
     Route::post('/pendaftar/{pendaftar}/process-ocr-ktp', [AdminOcrController::class, 'processKtp'])->name('pendaftar.ocr.ktp');
     Route::post('/pendaftar/{pendaftar}/process-ocr-kk', [AdminOcrController::class, 'processKk'])->name('pendaftar.ocr.kk');
+    Route::post('/pendaftar/{pendaftar}/process-ocr-admin', [AdminOcrController::class, 'processAdmin'])->name('pendaftar.ocr.admin');
     Route::get('/test-gemini', [AdminOcrController::class, 'testGemini'])->name('test.gemini');
 
     // == SETTINGS & WILAYAH ==

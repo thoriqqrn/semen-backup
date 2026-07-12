@@ -427,6 +427,134 @@ Jawab dalam format JSON murni:";
         }
     }
 
+    // ===============================================
+    //           METHOD BARU UNTUK PROSES ADMIN (SEMUA DOKUMEN)
+    // ===============================================
+    public function processAdmin(Pendaftar $pendaftar)
+    {
+        try {
+            // Validasi API Key
+            $apiKey = env('GEMINI_API_KEY');
+            if (!$apiKey) {
+                throw new \Exception('GEMINI_API_KEY tidak ditemukan di file .env');
+            }
+
+            $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent";
+            
+            $contents = [
+                [
+                    'parts' => [
+                        ['text' => "Analisis gambar-gambar dokumen pendaftaran berikut. Ekstrak informasi yang diperlukan dan kembalikan HANYA dalam format JSON. Jika data tidak ditemukan di dokumen manapun, isi dengan 'Tidak Ditemukan'.\n\nInformasi yang dibutuhkan:\n1. nik (dari KTP atau KK)\n2. no_kk (dari Kartu Keluarga)\n3. nama_ayah (dari KK, lihat status 'Kepala Keluarga' atau orang tua)\n4. nama_ibu (dari KK, lihat status 'Istri' atau orang tua)\n5. no_bpih (dari Bukti Setoran Awal BPIH)\n6. no_spph (dari Surat Pendaftaran Pergi Haji)\n7. no_paspor (dari Paspor, jika ada)\n\nFormat JSON:\n{\"nik\": \"...\", \"no_kk\": \"...\", \"nama_ayah\": \"...\", \"nama_ibu\": \"...\", \"no_bpih\": \"...\", \"no_spph\": \"...\", \"no_paspor\": \"...\"}"]
+                    ]
+                ]
+            ];
+
+            $dokumenTersedia = 0;
+            $dokumenList = [
+                'KTP' => $pendaftar->dokumen->file_ktp_path ?? null,
+                'KK' => $pendaftar->dokumen->file_kk_path ?? null,
+                'BPIH' => $pendaftar->dokumen->file_bpih_path ?? null,
+                'SPPH' => $pendaftar->dokumen->file_spph_path ?? null,
+                'Paspor' => $pendaftar->dokumen->file_paspor_path ?? null,
+            ];
+
+            foreach ($dokumenList as $jenis => $path) {
+                if ($path && Storage::disk('public')->exists($path)) {
+                    $mimeType = Storage::disk('public')->mimeType($path);
+                    // Filter hanya format gambar (gemini api untuk vision mendukung format gambar)
+                    if (str_starts_with($mimeType, 'image/')) {
+                         $imageBytes = Storage::disk('public')->get($path);
+                         $imageBase64 = base64_encode($imageBytes);
+                         
+                         $contents[0]['parts'][] = [
+                             'inline_data' => [
+                                 'mime_type' => $mimeType,
+                                 'data' => $imageBase64
+                             ]
+                         ];
+                         $dokumenTersedia++;
+                         Log::info("Admin OCR: Menambahkan dokumen $jenis", ['path' => $path]);
+                    } else {
+                         Log::warning("Admin OCR: Dokumen $jenis bukan gambar, dilewati", ['path' => $path, 'mime' => $mimeType]);
+                    }
+                }
+            }
+
+            if ($dokumenTersedia === 0) {
+                 return response()->json(['error' => 'Tidak ada dokumen berformat gambar yang bisa dianalisis.'], 404);
+            }
+
+            Log::info('Starting Admin OCR process', [
+                'pendaftar' => $pendaftar->nama_lengkap,
+                'jumlah_dokumen' => $dokumenTersedia
+            ]);
+
+            $response = Http::timeout(60) 
+                ->withHeaders([
+                    'x-goog-api-key' => $apiKey,
+                    'Content-Type' => 'application/json'
+                ])
+                ->post($url, [
+                    'contents' => $contents,
+                    'generationConfig' => [
+                        'temperature' => 0.1,
+                        'topK' => 1,
+                        'topP' => 1,
+                    ]
+                ]);
+
+            if ($response->failed()) {
+                $errorData = $response->json();
+                Log::error('Gemini API request failed (Admin):', $errorData);
+                throw new \Exception('Gagal berkomunikasi dengan Gemini API: ' . ($errorData['error']['message'] ?? 'Unknown error'));
+            }
+
+            $responseData = $response->json();
+            $responseText = $responseData['candidates'][0]['content']['parts'][0]['text'] ?? null;
+            
+            if (!$responseText) {
+                throw new \Exception('Gemini tidak memberikan response text');
+            }
+
+            // Bersihkan response
+            $jsonResponse = trim($responseText);
+            $jsonResponse = preg_replace('/```json\s*/', '', $jsonResponse);
+            $jsonResponse = preg_replace('/```\s*/', '', $jsonResponse);
+            $jsonResponse = trim($jsonResponse);
+
+            Log::info('Cleaned JSON Response (Admin):', ['json' => $jsonResponse]);
+
+            $ocrData = json_decode($jsonResponse, true);
+
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new \Exception("AI gagal memberikan format JSON yang valid. Response: " . substr($responseText, 0, 100));
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'nik' => $ocrData['nik'] ?? 'Tidak Ditemukan',
+                    'no_kk' => $ocrData['no_kk'] ?? 'Tidak Ditemukan',
+                    'nama_ayah' => $ocrData['nama_ayah'] ?? 'Tidak Ditemukan',
+                    'nama_ibu' => $ocrData['nama_ibu'] ?? 'Tidak Ditemukan',
+                    'no_bpih' => $ocrData['no_bpih'] ?? 'Tidak Ditemukan',
+                    'no_spph' => $ocrData['no_spph'] ?? 'Tidak Ditemukan',
+                    'no_paspor' => $ocrData['no_paspor'] ?? 'Tidak Ditemukan',
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Admin OCR Process Error:', [
+                'message' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
     /**
      * Test endpoint untuk verifikasi Gemini API
      */

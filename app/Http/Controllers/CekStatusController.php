@@ -40,6 +40,7 @@ class CekStatusController extends Controller
             'tanggal_daftar' => $pendaftar->created_at->format('d F Y, H:i') . ' WIB',
             'status_pendaftaran' => $pendaftar->status_pendaftaran, // Diterima / Ditolak / Menunggu Verifikasi
             'alasan_penolakan' => $pendaftar->alasan_penolakan,
+            'catatan_admin' => $pendaftar->catatan_admin,
         ]);
     }
 }

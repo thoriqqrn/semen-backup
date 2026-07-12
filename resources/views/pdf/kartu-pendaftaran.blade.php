@@ -44,6 +44,13 @@
             </tr>
         </table>
 
+        @if($pendaftar->catatan_admin)
+        <div style="margin: 20px 0 20px 0; padding: 10px; background-color: #f5f5f5; border-left: 4px solid #28a745;">
+            <p style="margin: 0 0 5px 0; font-weight: bold; font-size: 10px; color: #28a745;">CATATAN ADMIN</p>
+            <p style="margin: 0; font-style: italic; font-size: 10px; line-height: 1.4; color: #555;">{{ $pendaftar->catatan_admin }}</p>
+        </div>
+        @endif
+
         <div class="barcode-section">
             <p>KODE PENDAFTARAN ANDA</p>
             {{-- DomPDF tidak bisa render QR Code dari JS. Kita tampilkan sebagai teks besar --}}

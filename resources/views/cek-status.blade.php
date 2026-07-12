@@ -118,6 +118,15 @@
                                             <h5 class="fw-bold mb-0">SELAMAT! PENDAFTARAN DITERIMA</h5>
                                         </div>
                                         <p class="text-muted mb-3">Kartu pendaftaran Anda sudah terbit. Silakan unduh di bawah ini.</p>
+                                        
+                                        <!-- AREA PREVIEW CATATAN ADMIN DI VIEW CEK STATUS -->
+                                        <div id="cek-catatan-container" class="card bg-light border-start border-4 border-success text-start mx-auto mb-4" style="max-width: 500px; display: none;">
+                                            <div class="card-body py-2">
+                                                <small class="text-success fw-bold d-block mb-1">CATATAN ADMIN</small>
+                                                <p id="cek-catatan-text" class="fst-italic text-muted mb-0" style="font-size: 14px; font-weight: 300;"></p>
+                                            </div>
+                                        </div>
+
                                         {{-- Tombol ini mentrigger Script JS html2pdf --}}
                                         <button type="button" id="btnCetakKartu" class="btn btn-primary btn-lg shadow-sm">
                                             <i class="fas fa-file-pdf me-2"></i> Unduh Kartu Pendaftaran
@@ -294,25 +303,35 @@
         iconVerif.innerHTML = '2';
         iconHasil.innerHTML = '3';
 
-        areaAccepted.style.display = 'none';
-        areaRejected.style.display = 'none';
-        areaPending.style.display = 'none';
+            areaAccepted.style.display = 'none';
+            areaRejected.style.display = 'none';
+            areaPending.style.display = 'none';
 
-        if (status.includes('diterima')) {
-            // Status: DITERIMA
-            circleVerif.classList.add('completed');
-            textVerif.classList.add('text-success');
-            iconVerif.innerHTML = '<i class="fas fa-check"></i>';
-            
-            lineResult.classList.add('bg-success');
-            lineResult.style.width = '100%';
+            if (status.includes('diterima')) {
+                // Status: DITERIMA
+                circleVerif.classList.add('completed');
+                textVerif.classList.add('text-success');
+                iconVerif.innerHTML = '<i class="fas fa-check"></i>';
+                
+                lineResult.classList.add('bg-success');
+                lineResult.style.width = '100%';
 
-            circleHasil.classList.add('completed');
-            textHasil.classList.add('text-success');
-            textHasil.innerHTML = 'Diterima';
-            iconHasil.innerHTML = '<i class="fas fa-check"></i>';
+                circleHasil.classList.add('completed');
+                textHasil.classList.add('text-success');
+                textHasil.innerHTML = 'Diterima';
+                iconHasil.innerHTML = '<i class="fas fa-check"></i>';
 
-            areaAccepted.style.display = 'block';
+                // Tampilkan catatan admin jika ada
+                const catatanContainer = document.getElementById('cek-catatan-container');
+                const catatanText = document.getElementById('cek-catatan-text');
+                if (data.catatan_admin && data.catatan_admin.trim() !== '') {
+                    catatanText.textContent = data.catatan_admin;
+                    catatanContainer.style.display = 'block';
+                } else {
+                    catatanContainer.style.display = 'none';
+                }
+
+                areaAccepted.style.display = 'block';
 
         } else if (status.includes('ditolak')) {
             // Status: DITOLAK
@@ -422,6 +441,40 @@
             addRow('Nomor Porsi Haji', currentData.nomor_porsi_haji);
             addRow('Tempat, Tgl Lahir', `${currentData.tempat_lahir}, ${currentData.tanggal_lahir}`);
             addRow('Tanggal Pendaftaran', currentData.tanggal_daftar);
+
+            // CATATAN ADMIN (jika ada)
+            if (currentData.catatan_admin && currentData.catatan_admin.trim() !== '') {
+                currentY += 5; // Extra spacing
+                
+                // Background box untuk catatan
+                const boxX = labelX;
+                const boxY = currentY - 7;
+                const boxWidth = pageWidth - margin - labelX - 20;
+                const boxHeight = 20;
+                
+                doc.setFillColor(245, 245, 245); // Light gray background
+                doc.setDrawColor(25, 135, 84); // Green border
+                doc.setLineWidth(0.5);
+                doc.rect(boxX, boxY, boxWidth, boxHeight, 'FD');
+                
+                // Label "CATATAN ADMIN"
+                doc.setFontSize(9);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(25, 135, 84);
+                doc.text('CATATAN ADMIN', boxX + 3, currentY);
+                
+                // Isi catatan (italic, tipis)
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'italic');
+                doc.setTextColor(85, 85, 85);
+                
+                // Split text jika terlalu panjang
+                const maxWidth = boxWidth - 6;
+                const catatanLines = doc.splitTextToSize(currentData.catatan_admin, maxWidth);
+                doc.text(catatanLines, boxX + 3, currentY + 7);
+                
+                currentY += boxHeight + 5;
+            }
 
             // STATUS BADGE
             doc.setFont('helvetica', 'bold');

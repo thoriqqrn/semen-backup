@@ -10,6 +10,20 @@
     .placeholder-glow .placeholder { min-height: 1.2em; }
     .document-preview { cursor: pointer; transition: transform 0.2s; }
     .document-preview:hover { transform: scale(1.05); }
+    /* Simple image viewer */
+    #imagePreviewModal .modal-body {
+        min-height: 500px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f8f9fa;
+    }
+    #previewImage {
+        max-width: 100%;
+        max-height: 70vh;
+        transition: transform 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
 </style>
 @endpush
 
@@ -84,6 +98,52 @@
                         <tbody id="kkAnggotaTableBody"></tbody>
                     </table>
                  </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kotak Asisten Admin (Tabel Data) -->
+    <div class="card shadow mb-4 border-left-success">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-success"><i class="fas fa-table me-2"></i> Asisten Admin (Tabel Data)</h6>
+            <div>
+                <button id="processAdminBtn" class="btn btn-sm btn-primary me-2" data-process-url="{{ route('admin.pendaftar.ocr.admin', $pendaftar->id) }}">
+                    <i class="fas fa-cogs me-1"></i> Tarik Data AI
+                </button>
+                <button class="btn btn-sm btn-success" onclick="copyTableData()"><i class="fas fa-copy me-1"></i> Salin Data</button>
+            </div>
+        </div>
+        <div class="card-body">
+            <p>Tabel rangkuman data pendaftar untuk disalin ke Excel. Klik "Tarik Data AI" untuk memproses dokumen (KTP, KK, BPIH, SPPH, Paspor).</p>
+            <div id="adminStatus" class="status-text mb-3"></div>
+            <div class="table-responsive" id="tableDataAdmin">
+                <table class="table table-bordered table-sm" id="dataAdminTable">
+                    <thead>
+                        <tr>
+                            <th colspan="7" class="text-center bg-light"><strong>Data Pendaftar: {{ $pendaftar->nama_lengkap }}</strong></th>
+                        </tr>
+                        <tr>
+                            <th>NIK</th>
+                            <th>No. KK</th>
+                            <th>Nama Ayah</th>
+                            <th>Nama Ibu</th>
+                            <th>No. BPIH</th>
+                            <th>No. SPPH</th>
+                            <th>No. Paspor</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td id="tdNik">-</td>
+                            <td id="tdNoKk">-</td>
+                            <td id="tdNamaAyah">-</td>
+                            <td id="tdNamaIbu">-</td>
+                            <td id="tdNoBpih">-</td>
+                            <td id="tdNoSpph">-</td>
+                            <td id="tdNoPaspor">-</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -290,10 +350,22 @@
 
 <!-- Modal Preview Gambar -->
 <div class="modal fade" id="imagePreviewModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header"><h5 class="modal-title" id="imagePreviewModalLabel">Preview Dokumen</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-            <div class="modal-body text-center"><img src="" class="img-fluid w-100" alt="Preview"></div>
+            <div class="modal-header">
+                <h5 class="modal-title" id="imagePreviewModalLabel">Preview Dokumen</h5>
+                <div class="ms-auto me-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="rotateLeftBtn"><i class="fas fa-undo"></i> Putar Kiri</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="rotateRightBtn"><i class="fas fa-redo"></i> Putar Kanan</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="zoomInBtn"><i class="fas fa-search-plus"></i></button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="zoomOutBtn"><i class="fas fa-search-minus"></i></button>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="resetBtn"><i class="fas fa-sync-alt"></i></button>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img src="" id="previewImage" class="img-fluid" alt="Preview">
+            </div>
         </div>
     </div>
 </div>
@@ -419,19 +491,162 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ========================================
-    // MODAL PREVIEW GAMBAR
+    // LOGIKA UNTUK PROSES ASISTEN ADMIN
+    // ========================================
+    const adminBtn = document.getElementById('processAdminBtn');
+    if (adminBtn) {
+        adminBtn.addEventListener('click', function() {
+            const url = this.dataset.processUrl;
+            const button = this;
+            const originalText = button.innerHTML;
+            const statusEl = document.getElementById('adminStatus');
+
+            button.disabled = true;
+            button.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Menganalisis...`;
+            statusEl.textContent = 'Menganalisis semua dokumen (KTP, KK, BPIH, SPPH, Paspor) menggunakan AI... Proses ini mungkin memakan waktu agak lama.';
+            statusEl.style.color = 'blue';
+
+            fetch(url, { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' }})
+            .then(res => res.ok ? res.json() : res.json().then(err => { throw new Error(err.error || 'Terjadi kesalahan') }))
+            .then(data => {
+                statusEl.textContent = '✓ Analisis selesai!';
+                statusEl.style.color = 'green';
+
+                document.getElementById('tdNik').textContent = data.data.nik;
+                document.getElementById('tdNoKk').textContent = data.data.no_kk;
+                document.getElementById('tdNamaAyah').textContent = data.data.nama_ayah;
+                document.getElementById('tdNamaIbu').textContent = data.data.nama_ibu;
+                document.getElementById('tdNoBpih').textContent = data.data.no_bpih;
+                document.getElementById('tdNoSpph').textContent = data.data.no_spph;
+                document.getElementById('tdNoPaspor').textContent = data.data.no_paspor;
+            })
+            .catch(error => {
+                statusEl.textContent = '✗ Error: ' + error.message;
+                statusEl.style.color = 'red';
+            })
+            .finally(() => {
+                button.disabled = false;
+                button.innerHTML = originalText;
+            });
+        });
+    }
+
+    // ========================================
+    // MODAL PREVIEW GAMBAR (SIMPLE)
     // ========================================
     const imagePreviewModal = document.getElementById('imagePreviewModal');
+    let currentRotation = 0;
+    let currentZoom = 1;
+    let baseScale = 1; // Scale dasar untuk fit gambar saat rotate
+    
     if (imagePreviewModal) {
+        const previewImage = document.getElementById('previewImage');
+        const modalBody = imagePreviewModal.querySelector('.modal-body');
+        
+        // Fungsi hitung scale yang pas biar gambar fit di modal saat rotate
+        function calculateFitScale() {
+            const imgWidth = previewImage.naturalWidth;
+            const imgHeight = previewImage.naturalHeight;
+            const containerWidth = modalBody.clientWidth;
+            const containerHeight = modalBody.clientHeight;
+            
+            // Check jika image dimensions valid
+            if (!imgWidth || !imgHeight || !containerWidth || !containerHeight) {
+                return 1;
+            }
+            
+            // Normalisasi rotation (0, 90, 180, 270)
+            const normalizedRotation = ((currentRotation % 360) + 360) % 360;
+            
+            // Jika rotate 90 atau 270, dimensi gambar kebalik
+            if (normalizedRotation === 90 || normalizedRotation === 270) {
+                // Width gambar jadi height, height gambar jadi width
+                const scaleW = containerWidth / imgHeight;
+                const scaleH = containerHeight / imgWidth;
+                baseScale = Math.min(scaleW, scaleH, 1) * 0.9; // 0.9 biar ada margin
+            } else {
+                // Rotation 0 atau 180, dimensi normal
+                const scaleW = containerWidth / imgWidth;
+                const scaleH = containerHeight / imgHeight;
+                baseScale = Math.min(scaleW, scaleH, 1) * 0.9;
+            }
+            
+            return baseScale;
+        }
+        
+        // Fungsi update transform
+        function updateTransform() {
+            const finalScale = baseScale * currentZoom;
+            previewImage.style.transform = `rotate(${currentRotation}deg) scale(${finalScale})`;
+        }
+        
+        // Saat modal mulai dibuka
         imagePreviewModal.addEventListener('show.bs.modal', function (event) {
             const triggerElement = event.relatedTarget;
             const imgSrc = triggerElement.getAttribute('data-img-src');
             const imgTitle = triggerElement.getAttribute('data-img-title');
-            const modalTitle = imagePreviewModal.querySelector('.modal-title');
-            const modalImage = imagePreviewModal.querySelector('.modal-body img');
-            modalTitle.textContent = 'Preview: ' + imgTitle;
-            modalImage.src = imgSrc;
-            modalImage.alt = 'Preview: ' + imgTitle;
+            
+            document.getElementById('imagePreviewModalLabel').textContent = 'Preview: ' + imgTitle;
+            
+            // Reset state
+            currentRotation = 0;
+            currentZoom = 1;
+            baseScale = 1;
+            
+            // Set image src dan biarkan tampil natural dulu
+            previewImage.style.transform = 'none';
+            previewImage.src = imgSrc;
+        });
+        
+        // Setelah modal FULLY RENDERED (shown event)
+        imagePreviewModal.addEventListener('shown.bs.modal', function () {
+            // Tunggu sebentar biar image benar-benar ready
+            setTimeout(() => {
+                if (previewImage.complete && previewImage.naturalWidth > 0) {
+                    calculateFitScale();
+                    updateTransform();
+                } else {
+                    // Jika belum load, tunggu onload
+                    previewImage.onload = function() {
+                        calculateFitScale();
+                        updateTransform();
+                    };
+                }
+            }, 100);
+        });
+        
+        // Rotate Left
+        document.getElementById('rotateLeftBtn')?.addEventListener('click', function() {
+            currentRotation -= 90;
+            calculateFitScale(); // Hitung ulang scale biar fit
+            updateTransform();
+        });
+        
+        // Rotate Right
+        document.getElementById('rotateRightBtn')?.addEventListener('click', function() {
+            currentRotation += 90;
+            calculateFitScale(); // Hitung ulang scale biar fit
+            updateTransform();
+        });
+        
+        // Zoom In
+        document.getElementById('zoomInBtn')?.addEventListener('click', function() {
+            currentZoom = Math.min(currentZoom + 0.2, 3);
+            updateTransform();
+        });
+        
+        // Zoom Out
+        document.getElementById('zoomOutBtn')?.addEventListener('click', function() {
+            currentZoom = Math.max(currentZoom - 0.2, 0.5);
+            updateTransform();
+        });
+        
+        // Reset
+        document.getElementById('resetBtn')?.addEventListener('click', function() {
+            currentRotation = 0;
+            currentZoom = 1;
+            calculateFitScale();
+            updateTransform();
         });
     }
 
@@ -460,6 +675,42 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+</script>
+
+<script>
+function copyTableData() {
+    var range = document.createRange();
+    var selection = window.getSelection();
+    
+    // Select the table
+    range.selectNodeContents(document.getElementById('dataAdminTable'));
+    selection.removeAllRanges();
+    selection.addRange(range);
+    
+    try {
+        // Execute copy command
+        document.execCommand('copy');
+        
+        // Use SweetAlert if available, otherwise fallback to alert
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                icon: 'success',
+                title: 'Tersalin!',
+                text: 'Data tabel berhasil disalin ke clipboard.',
+                timer: 1500,
+                showConfirmButton: false
+            });
+        } else {
+            alert('Data tabel berhasil disalin ke clipboard.');
+        }
+    } catch (err) {
+        console.error('Failed to copy table: ', err);
+        alert('Gagal menyalin data tabel.');
+    }
+    
+    // Deselect
+    selection.removeAllRanges();
+}
 </script>
 
 <!-- Modal Terima Pendaftaran -->

@@ -82,6 +82,12 @@
                                 </table>
                             </div>
                             
+                            <!-- CATATAN ADMIN (jika ada) -->
+                            <div id="kartu-catatan-container" style="margin: 25px 0; padding: 15px; background: #f8f9fa; border-left: 4px solid #198754; display: none;">
+                                <p style="margin: 0 0 8px 0; font-weight: 600; font-size: 13px; color: #198754; text-transform: uppercase;">Catatan Admin</p>
+                                <p id="kartu-catatan" style="margin: 0; font-style: italic; font-weight: 300; font-size: 14px; line-height: 1.6; color: #6c757d;"></p>
+                            </div>
+                            
                             <!-- BARCODE / KODE -->
                             <div style="text-align: center; margin-top: 40px; padding-top: 30px; border-top: 2px dashed #ccc;">
                                 <p style="margin-bottom: 15px; font-weight: bold; font-size: 14px;">KODE PENDAFTARAN ANDA</p>
@@ -145,6 +151,16 @@
                     document.getElementById('kartu-porsi').textContent = data.nomor_porsi_haji || '-';
                     document.getElementById('kartu-tgl-daftar').textContent = data.tanggal_daftar || '-';
                     document.getElementById('kartu-kode').textContent = data.kode_pendaftaran || '-';
+                    
+                    // Tampilkan catatan admin jika ada
+                    const catatanContainer = document.getElementById('kartu-catatan-container');
+                    const catatanText = document.getElementById('kartu-catatan');
+                    if (data.catatan_admin && data.catatan_admin.trim() !== '') {
+                        catatanText.textContent = data.catatan_admin;
+                        catatanContainer.style.display = 'block';
+                    } else {
+                        catatanContainer.style.display = 'none';
+                    }
                     
                     // Tampilkan hasil
                     hasilContainer.style.display = 'block';
